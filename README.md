@@ -1,65 +1,64 @@
 # 📨 SendMail.NET
 
 **SendMail.NET** is a powerful and extensible email delivery pipeline for .NET.  
-It supports multiple providers, automatic failover, and delivery tracking — all managed through an elegant embedded dashboard.
+It supports multiple providers, automatic failover, and delivery tracking through a modular pipeline design.
 
 ---
 
-## ✨ Features
+## ✨ Current Features
 
-- ✅ **Provider-agnostic** – Integrate SMTP, SendGrid, Mailgun, Amazon SES, and more
+- ✅ **Provider-agnostic** – Currently supports SMTP with more providers coming soon
 - 🔁 **Failover support** – Automatically switch to backup providers on failure
 - ⚙️ **Pluggable architecture** – Add custom providers via NuGet packages
-- 📦 **Pipeline design** – From creation → templating → routing → sending → result tracking
-- 📊 **Built-in dashboard** – Monitor sent emails, errors, retries, and metrics
-- 🧪 **Test-friendly & production-ready** – Clean interfaces and extensibility built-in
+- 📦 **Pipeline design** – From validation → sending → result tracking
+- 🧪 **Test-friendly** – Clean interfaces and extensibility built-in
 
 ---
 
-## 📦 Install (Coming Soon)
+## 📦 Install
 
 ```bash
 dotnet add package SendMail.NET
 ```
 
-> Provider-specific integrations will be available as separate packages:
-> - `SendMail.NET.Smtp`
-> - `SendMail.NET.SendGrid`
-> - `SendMail.NET.Mailgun`
-> - And more...
-
 ---
 
 ## 🛠️ Getting Started
 
-1. Register the core pipeline and dashboard in your `Program.cs` or `Startup.cs`
-2. Configure your providers in `appsettings.json`
-3. Use the fluent API or injected services to queue and send emails
-4. Open `/sendmail-dashboard` to monitor jobs
+1. Register the core pipeline in your `Program.cs` or `Startup.cs`
+2. Configure your providers
+3. Use the injected services to send emails
 
 ```csharp
 services.AddSendMail(config =>
 {
-    config.UseDashboard("/sendmail-dashboard");
-    config.AddProvider<SendGridProvider>("SendGrid", options =>
+    // Configure SMTP provider
+    config.AddProvider<SmtpEmailProvider>(options =>
     {
-        options.ApiKey = "...";
+        options.Name = "SMTP";
+        options.Priority = 1;
+        options.HourlyQuota = 100;
+        options.DailyQuota = 1000;
+        options.MonthlyQuota = 10000;
+        options.Settings["Host"] = "smtp.gmail.com";
+        options.Settings["Port"] = "587";
+        options.Settings["EnableSsl"] = "true";
+        options.Settings["Username"] = "your-email@gmail.com";
+        options.Settings["Password"] = "your-app-password";
+        options.Settings["DefaultFrom"] = "your-email@gmail.com";
     });
+
+    // Configure provider behavior
+    config.ConfigureProviders(options =>
+    {
+        options.EnableFallback = true;
+        options.MaxRetries = 3;
+    });
+
+    // Use default pipeline
+    config.UseDefaultPipeline();
 });
 ```
-
----
-
-## 📊 Dashboard
-
-Track your email pipeline in real time:
-
-- Recent sends / failures
-- Provider usage stats
-- Retry history
-- Searchable logs
-
-> The dashboard is embedded like Hangfire and protected by your auth layer.
 
 ---
 
@@ -79,24 +78,25 @@ Want to build your own provider? Just implement the interface and register it.
 ## 🧱 Architecture
 
 ```plaintext
-Create Email
-    ↓
-Compile Template
+Validate Email
     ↓
 Select Provider (priority/failover)
     ↓
 Send Email
     ↓
-Track + Visualize Result
+Track Result
 ```
 
 ---
 
 ## 📌 Roadmap
 
-- [ ] Core pipeline and interfaces
-- [ ] SMTP provider
-- [ ] Dashboard UI
+- [x] Core pipeline and interfaces
+- [x] SMTP provider
+- [ ] SendGrid provider
+- [ ] Mailgun provider
+- [ ] Amazon SES provider
+- [ ] Dashboard UI for monitoring
 - [ ] Webhook support for delivery confirmations
 - [ ] SQL Server / PostgreSQL logging
 - [ ] Hangfire/Quartz integration
@@ -106,7 +106,9 @@ Track + Visualize Result
 
 ## 🤝 Contributing
 
-Contributions are welcome! Whether it's a bug fix, a new provider, or dashboard improvements — please open a PR or issue.
+This project is owned and maintained by the Net of Code team. All contributions become the property of Net of Code.
+
+Contributions are welcome! Whether it's a bug fix, a new provider, or improvements — please open a PR or issue.
 
 ---
 

@@ -24,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SendMail.NET\SendMail.NET.Core\SendMail.NET.Core.csproj" />
+    <ProjectReference Include="..\..\src\SendMail.NET.Core\SendMail.NET.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -7,7 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SendMail.NET.Core\SendMail.NET.Core.csproj" />
+    <ProjectReference Include="..\..\src\SendMail.NET.Core\SendMail.NET.Core.csproj" />
   </ItemGroup>
 
 </Project> 
