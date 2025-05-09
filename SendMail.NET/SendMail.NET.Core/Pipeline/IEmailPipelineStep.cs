@@ -5,6 +5,6 @@ namespace SendMail.NET.Core.Pipeline
 {
     public interface IEmailPipelineStep
     {
-        Task ExecuteAsync(EmailContext context);
+        Task<EmailContext> ExecuteAsync(EmailContext context);
     }
 } 

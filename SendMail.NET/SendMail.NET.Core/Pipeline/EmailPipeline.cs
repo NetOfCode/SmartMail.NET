@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using SendMail.NET.Core.Models;
 
 namespace SendMail.NET.Core.Pipeline
 {
@@ -7,9 +8,7 @@ namespace SendMail.NET.Core.Pipeline
         private readonly IEnumerable<IEmailPipelineStep> _steps;
         private readonly ILogger<EmailPipeline> _logger;
 
-        public EmailPipeline(
-            IEnumerable<IEmailPipelineStep> steps,
-            ILogger<EmailPipeline> logger)
+        public EmailPipeline(IEnumerable<IEmailPipelineStep> steps, ILogger<EmailPipeline> logger)
         {
             _steps = steps ?? throw new ArgumentNullException(nameof(steps));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -17,25 +16,22 @@ namespace SendMail.NET.Core.Pipeline
 
         public async Task<SendResult> ExecuteAsync(EmailContext context)
         {
-            try
-            {
-                foreach (var step in _steps)
-                {
-                    _logger.LogDebug("Executing pipeline step: {StepType}", step.GetType().Name);
-                    await step.ExecuteAsync(context);
-                }
+            _logger.LogDebug("Starting email pipeline execution");
 
-                return context.Result;
-            }
-            catch (Exception ex)
+            foreach (var step in _steps)
             {
-                _logger.LogError(ex, "Error executing email pipeline");
-                return new SendResult
+                try
                 {
-                    Success = false,
-                    Error = ex.Message
-                };
+                    context = await step.ExecuteAsync(context);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Pipeline step failed");
+                    throw;
+                }
             }
+
+            return context.Result;
         }
     }
 } 

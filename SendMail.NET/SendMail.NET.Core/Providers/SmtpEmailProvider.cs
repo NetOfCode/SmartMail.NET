@@ -8,42 +8,69 @@ using SendMail.NET.Core.Pipeline;
 
 namespace SendMail.NET.Core.Providers
 {
+    public interface ISmtpClient
+    {
+        Task SendMailAsync(MailMessage message);
+    }
+
+    public class SmtpClientWrapper : ISmtpClient
+    {
+        private readonly SmtpClient _client;
+
+        public SmtpClientWrapper(SmtpClient client)
+        {
+            _client = client;
+        }
+
+        public Task SendMailAsync(MailMessage message)
+        {
+            return _client.SendMailAsync(message);
+        }
+    }
+
     public class SmtpEmailProvider : IEmailProvider
     {
-        private readonly ProviderConfig _config;
         private readonly ILogger<SmtpEmailProvider> _logger;
+        private readonly ISmtpClient _smtpClient;
+        private readonly string _name;
+        private readonly string _defaultFrom;
 
-        public string Name => "SMTP";
+        public string Name => _name;
 
         public SmtpEmailProvider(
             IOptions<EmailProviderOptions> options,
-            ILogger<SmtpEmailProvider> logger)
+            ILogger<SmtpEmailProvider> logger,
+            ISmtpClient smtpClient = null)
         {
-            _config = options.Value.Providers.FirstOrDefault(p => p.Name == "SMTP") 
-                ?? throw new ArgumentException("SMTP provider configuration not found");
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _smtpClient = smtpClient ?? CreateSmtpClient(options.Value);
+            _name = options.Value.Providers[0].Name;
+            _defaultFrom = options.Value.Providers[0].Settings["DefaultFrom"];
+        }
+
+        private ISmtpClient CreateSmtpClient(EmailProviderOptions options)
+        {
+            var config = options.Providers[0];
+            var client = new SmtpClient
+            {
+                Host = config.Settings["Host"],
+                Port = int.Parse(config.Settings["Port"]),
+                EnableSsl = bool.Parse(config.Settings["EnableSsl"]),
+                Credentials = new System.Net.NetworkCredential(
+                    config.Settings["Username"],
+                    config.Settings["Password"]
+                )
+            };
+            return new SmtpClientWrapper(client);
         }
 
         public async Task<SendResult> SendAsync(EmailMessage message)
         {
             try
             {
-                var host = _config.Settings["Host"];
-                var port = int.Parse(_config.Settings["Port"]);
-                var enableSsl = bool.Parse(_config.Settings["EnableSsl"]);
-                var username = _config.Settings["Username"];
-                var password = _config.Settings["Password"];
-                var defaultFrom = _config.Settings["DefaultFrom"];
-
-                using var client = new SmtpClient(host, port)
+                var mailMessage = new MailMessage
                 {
-                    EnableSsl = enableSsl,
-                    Credentials = new System.Net.NetworkCredential(username, password)
-                };
-
-                using var mailMessage = new MailMessage
-                {
-                    From = new MailAddress(message.From ?? defaultFrom),
+                    From = new MailAddress(_defaultFrom),
                     Subject = message.Subject,
                     Body = message.Body,
                     IsBodyHtml = message.IsHtml
@@ -61,25 +88,30 @@ namespace SendMail.NET.Core.Providers
                     mailMessage.Bcc.Add(bcc);
                 }
 
-                foreach (var attachment in message.Attachments)
+                if (message.Attachments != null)
                 {
-                    mailMessage.Attachments.Add(new Attachment(
-                        new System.IO.MemoryStream(attachment.Content),
-                        attachment.FileName,
-                        attachment.ContentType));
+                    foreach (var attachment in message.Attachments)
+                    {
+                        var mailAttachment = new Attachment(
+                            new System.IO.MemoryStream(attachment.Content),
+                            attachment.FileName,
+                            attachment.ContentType
+                        );
+                        mailMessage.Attachments.Add(mailAttachment);
+                    }
                 }
 
-                await client.SendMailAsync(mailMessage);
+                await _smtpClient.SendMailAsync(mailMessage);
 
                 return new SendResult
                 {
                     Success = true,
-                    MessageId = Guid.NewGuid().ToString() // SMTP doesn't provide message IDs
+                    MessageId = Guid.NewGuid().ToString()
                 };
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error sending email via SMTP");
+                _logger.LogError(ex, "Failed to send email to {To}", message.To);
                 return new SendResult
                 {
                     Success = false,

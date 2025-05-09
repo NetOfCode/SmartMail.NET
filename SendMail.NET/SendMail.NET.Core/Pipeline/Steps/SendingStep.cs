@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using SendMail.NET.Core.Models;
 
 namespace SendMail.NET.Core.Pipeline.Steps
 {
@@ -10,26 +11,23 @@ namespace SendMail.NET.Core.Pipeline.Steps
 
         public SendingStep(ILogger<SendingStep> logger)
         {
-            _logger = logger;
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task ExecuteAsync(EmailContext context)
+        public async Task<EmailContext> ExecuteAsync(EmailContext context)
         {
-            if (context.Provider == null)
-                throw new InvalidOperationException("No email provider selected");
+            _logger.LogDebug("Sending email via {Provider}", context.Provider.Name);
 
-            _logger.LogDebug("Sending email using provider: {Provider}", context.Provider.Name);
+            var result = await context.Provider.SendAsync(context.Message);
+            context.Result = result;
 
-            context.Result = await context.Provider.SendAsync(context.Message);
-
-            if (!context.Result.Success)
+            if (!result.Success)
             {
-                _logger.LogError("Failed to send email: {Error}", context.Result.Error);
+                _logger.LogError("Failed to send email: {Error}", result.Error);
+                throw new Exception($"Failed to send email: {result.Error}");
             }
-            else
-            {
-                _logger.LogInformation("Email sent successfully. MessageId: {MessageId}", context.Result.MessageId);
-            }
+
+            return context;
         }
     }
 } 
