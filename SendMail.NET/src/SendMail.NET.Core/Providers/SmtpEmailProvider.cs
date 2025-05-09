@@ -8,26 +8,45 @@ using SendMail.NET.Core.Pipeline;
 
 namespace SendMail.NET.Core.Providers
 {
+    /// <summary>
+    /// Interface for SMTP client operations.
+    /// </summary>
     public interface ISmtpClient
     {
+        /// <summary>
+        /// Sends an email message asynchronously.
+        /// </summary>
+        /// <param name="message">The mail message to send.</param>
+        /// <returns>A task representing the asynchronous operation.</returns>
         Task SendMailAsync(MailMessage message);
     }
 
+    /// <summary>
+    /// Wrapper for System.Net.Mail.SmtpClient to enable testing.
+    /// </summary>
     public class SmtpClientWrapper : ISmtpClient
     {
         private readonly SmtpClient _client;
 
+        /// <summary>
+        /// Initializes a new instance of the SmtpClientWrapper class.
+        /// </summary>
+        /// <param name="client">The SMTP client to wrap.</param>
         public SmtpClientWrapper(SmtpClient client)
         {
             _client = client;
         }
 
+        /// <inheritdoc/>
         public Task SendMailAsync(MailMessage message)
         {
             return _client.SendMailAsync(message);
         }
     }
 
+    /// <summary>
+    /// Email provider implementation using SMTP.
+    /// </summary>
     public class SmtpEmailProvider : IEmailProvider
     {
         private readonly ILogger<SmtpEmailProvider> _logger;
@@ -35,8 +54,18 @@ namespace SendMail.NET.Core.Providers
         private readonly string _name;
         private readonly string _defaultFrom;
 
+        /// <summary>
+        /// Gets the name of the provider.
+        /// </summary>
         public string Name => _name;
 
+        /// <summary>
+        /// Initializes a new instance of the SmtpEmailProvider class.
+        /// </summary>
+        /// <param name="options">The provider options.</param>
+        /// <param name="logger">The logger.</param>
+        /// <param name="smtpClient">Optional SMTP client for testing.</param>
+        /// <exception cref="ArgumentNullException">Thrown when options or logger is null.</exception>
         public SmtpEmailProvider(
             IOptions<EmailProviderOptions> options,
             ILogger<SmtpEmailProvider> logger,
@@ -64,6 +93,7 @@ namespace SendMail.NET.Core.Providers
             return new SmtpClientWrapper(client);
         }
 
+        /// <inheritdoc/>
         public async Task<SendResult> SendAsync(EmailMessage message)
         {
             try
