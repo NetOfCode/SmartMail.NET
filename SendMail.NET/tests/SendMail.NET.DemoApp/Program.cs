@@ -14,9 +14,7 @@ builder.Services.AddSendMail(config =>
     {
         options.Name = "SMTP";
         options.Priority = 1;
-        options.HourlyQuota = 100;  // Max 100 emails per hour
-        options.DailyQuota = 1000;  // Max 1000 emails per day
-        options.MonthlyQuota = 10000; // Max 10000 emails per month
+        options.HourlyQuota = 100;  // Only set hourly quota, daily and monthly will be null
         options.Settings["Host"] = "smtp.gmail.com";
         options.Settings["Port"] = "587";
         options.Settings["EnableSsl"] = "true";

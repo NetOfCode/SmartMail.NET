@@ -81,8 +81,8 @@ namespace SendMail.NET.Core.Providers
             var now = DateTime.UtcNow;
             
             // Check hourly quota
-            if (config.HourlyQuota > 0 && 
-                stats.SuccessfulSends >= config.HourlyQuota && 
+            if (config.HourlyQuota.HasValue && 
+                stats.SuccessfulSends >= config.HourlyQuota.Value && 
                 stats.LastSuccess?.Hour == now.Hour &&
                 stats.LastSuccess?.Date == now.Date)
             {
@@ -92,8 +92,8 @@ namespace SendMail.NET.Core.Providers
             }
 
             // Check daily quota
-            if (config.DailyQuota > 0 && 
-                stats.SuccessfulSends >= config.DailyQuota && 
+            if (config.DailyQuota.HasValue && 
+                stats.SuccessfulSends >= config.DailyQuota.Value && 
                 stats.LastSuccess?.Date == now.Date)
             {
                 _logger.LogDebug("Provider {Provider} has reached daily quota of {Quota}", 
@@ -102,8 +102,8 @@ namespace SendMail.NET.Core.Providers
             }
 
             // Check monthly quota
-            if (config.MonthlyQuota > 0 && 
-                stats.SuccessfulSends >= config.MonthlyQuota && 
+            if (config.MonthlyQuota.HasValue && 
+                stats.SuccessfulSends >= config.MonthlyQuota.Value && 
                 stats.LastSuccess?.Month == now.Month &&
                 stats.LastSuccess?.Year == now.Year)
             {

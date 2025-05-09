@@ -41,17 +41,17 @@ namespace SendMail.NET.Core.Providers
         /// <summary>
         /// Gets or sets the maximum number of emails that can be sent per hour.
         /// </summary>
-        public int HourlyQuota { get; set; }
+        public int? HourlyQuota { get; set; }
 
         /// <summary>
         /// Gets or sets the maximum number of emails that can be sent per day.
         /// </summary>
-        public int DailyQuota { get; set; }
+        public int? DailyQuota { get; set; }
 
         /// <summary>
         /// Gets or sets the maximum number of emails that can be sent per month.
         /// </summary>
-        public int MonthlyQuota { get; set; }
+        public int? MonthlyQuota { get; set; }
 
         /// <summary>
         /// Gets or sets whether the provider is enabled.
