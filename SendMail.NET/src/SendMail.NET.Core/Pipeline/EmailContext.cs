@@ -15,11 +15,6 @@ namespace SendMail.NET.Core.Pipeline
         public EmailMessage Message { get; set; }
 
         /// <summary>
-        /// Gets or sets the compiled body of the email (for template-based emails).
-        /// </summary>
-        public string CompiledBody { get; set; }
-
-        /// <summary>
         /// Gets or sets the provider that will be used to send the email.
         /// </summary>
         public IEmailProvider Provider { get; set; }
