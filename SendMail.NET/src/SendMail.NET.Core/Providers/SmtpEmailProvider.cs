@@ -1,6 +1,4 @@
-using System;
 using System.Net.Mail;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using SendMail.NET.Core.Models;
@@ -66,28 +64,33 @@ namespace SendMail.NET.Core.Providers
         /// <param name="logger">The logger.</param>
         /// <param name="smtpClient">Optional SMTP client for testing.</param>
         /// <exception cref="ArgumentNullException">Thrown when options or logger is null.</exception>
+        /// <exception cref="InvalidOperationException">Thrown when settings are not of type SmtpProviderSettings.</exception>
         public SmtpEmailProvider(
             IOptions<EmailProviderOptions> options,
             ILogger<SmtpEmailProvider> logger,
             ISmtpClient smtpClient = null)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _smtpClient = smtpClient ?? CreateSmtpClient(options.Value);
-            _name = options.Value.Providers[0].Name;
-            _defaultFrom = options.Value.Providers[0].Settings["DefaultFrom"];
+            
+            var config = options.Value.Providers[0];
+            if (config.Settings is not SmtpProviderSettings smtpSettings)
+                throw new InvalidOperationException("SMTP provider requires SmtpProviderSettings");
+
+            _smtpClient = smtpClient ?? CreateSmtpClient(smtpSettings);
+            _name = config.Name;
+            _defaultFrom = smtpSettings.DefaultFrom;
         }
 
-        private ISmtpClient CreateSmtpClient(EmailProviderOptions options)
+        private ISmtpClient CreateSmtpClient(SmtpProviderSettings settings)
         {
-            var config = options.Providers[0];
             var client = new SmtpClient
             {
-                Host = config.Settings["Host"],
-                Port = int.Parse(config.Settings["Port"]),
-                EnableSsl = bool.Parse(config.Settings["EnableSsl"]),
+                Host = settings.Host,
+                Port = settings.Port,
+                EnableSsl = settings.EnableSsl,
                 Credentials = new System.Net.NetworkCredential(
-                    config.Settings["Username"],
-                    config.Settings["Password"]
+                    settings.Username,
+                    settings.Password
                 )
             };
             return new SmtpClientWrapper(client);
@@ -106,28 +109,36 @@ namespace SendMail.NET.Core.Providers
                     IsBodyHtml = message.IsHtml
                 };
 
-                mailMessage.To.Add(message.To);
+                if (!string.IsNullOrEmpty(message.To))
+                    mailMessage.To.Add(message.To);
 
-                foreach (var cc in message.Cc)
+                if (message.Cc != null)
                 {
-                    mailMessage.CC.Add(cc);
+                    foreach (var cc in message.Cc)
+                    {
+                        if (!string.IsNullOrEmpty(cc))
+                            mailMessage.CC.Add(cc);
+                    }
                 }
 
-                foreach (var bcc in message.Bcc)
+                if (message.Bcc != null)
                 {
-                    mailMessage.Bcc.Add(bcc);
+                    foreach (var bcc in message.Bcc)
+                    {
+                        if (!string.IsNullOrEmpty(bcc))
+                            mailMessage.Bcc.Add(bcc);
+                    }
                 }
 
                 if (message.Attachments != null)
                 {
                     foreach (var attachment in message.Attachments)
                     {
-                        var mailAttachment = new Attachment(
-                            new System.IO.MemoryStream(attachment.Content),
-                            attachment.FileName,
-                            attachment.ContentType
-                        );
-                        mailMessage.Attachments.Add(mailAttachment);
+                        if (attachment?.Content != null)
+                        {
+                            var ms = new MemoryStream(attachment.Content);
+                            mailMessage.Attachments.Add(new Attachment(ms, attachment.FileName, attachment.ContentType));
+                        }
                     }
                 }
 

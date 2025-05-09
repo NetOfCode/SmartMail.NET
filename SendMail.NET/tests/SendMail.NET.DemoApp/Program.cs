@@ -10,18 +10,20 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddSendMail(config =>
 {
     // Configure SMTP provider
-    config.AddProvider<SmtpEmailProvider>(options =>
-    {
-        options.Name = "SMTP";
-        options.Priority = 1;
-        options.HourlyQuota = 100;  // Only set hourly quota, daily and monthly will be null
-        options.Settings["Host"] = "smtp.gmail.com";
-        options.Settings["Port"] = "587";
-        options.Settings["EnableSsl"] = "true";
-        options.Settings["Username"] = "your-email@gmail.com";
-        options.Settings["Password"] = "your-app-password";
-        options.Settings["DefaultFrom"] = "your-email@gmail.com";
-    });
+    var smtpSettings = new SmtpProviderSettings(
+        host: "smtp.gmail.com",
+        port: 587,
+        username: "your-email@gmail.com",
+        password: "your-app-password",
+        defaultFrom: "your-email@gmail.com",
+        enableSsl: true
+    );
+
+    var providerConfig = new ProviderConfig("Gmail SMTP", 1, smtpSettings)
+        .WithHourlyQuota(100)
+        .WithEnabled(true);
+
+    config.AddProvider<SmtpEmailProvider>(providerConfig);
 
     // Configure provider behavior
     config.ConfigureProviders(options =>

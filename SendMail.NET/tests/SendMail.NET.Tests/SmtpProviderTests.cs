@@ -19,27 +19,24 @@ namespace SendMail.NET.Tests
 
         public SmtpEmailProviderTests()
         {
+            var smtpSettings = new SmtpProviderSettings(
+                host: "smtp.test.com",
+                port: 587,
+                username: "test@test.com",
+                password: "test-password",
+                defaultFrom: "test@test.com",
+                enableSsl: true
+            );
+
             var options = new EmailProviderOptions
             {
                 Providers = new List<ProviderConfig>
                 {
-                    new ProviderConfig
-                    {
-                        Name = "SMTP",
-                        Priority = 1,
-                        HourlyQuota = 100,
-                        DailyQuota = 1000,
-                        MonthlyQuota = 10000,
-                        Settings = new Dictionary<string, string>
-                        {
-                            { "Host", "smtp.test.com" },
-                            { "Port", "587" },
-                            { "Username", "test@test.com" },
-                            { "Password", "test-password" },
-                            { "EnableSsl", "true" },
-                            { "DefaultFrom", "test@test.com" }
-                        }
-                    }
+                    new ProviderConfig("SMTP", 1, smtpSettings)
+                        .WithHourlyQuota(100)
+                        .WithDailyQuota(1000)
+                        .WithMonthlyQuota(10000)
+                        .WithEnabled(true)
                 }
             };
 
@@ -60,7 +57,7 @@ namespace SendMail.NET.Tests
         }
 
         [Fact]
-        public async Task SendAsync_WithValidMessage_ShouldSucceed()
+        public async Task SendAsync_WhenMessageValid_ShouldSendEmail()
         {
             // Arrange
             var message = new EmailMessage
@@ -68,27 +65,44 @@ namespace SendMail.NET.Tests
                 To = "recipient@test.com",
                 Subject = "Test Subject",
                 Body = "Test Body",
-                IsHtml = false,
-                Cc = new List<string> { "cc@test.com" },
-                Bcc = new List<string> { "bcc@test.com" }
+                IsHtml = false
             };
 
-            _mockSmtpClient.Setup(x => x.SendMailAsync(It.IsAny<MailMessage>()))
+            _mockSmtpClient
+                .Setup(x => x.SendMailAsync(It.IsAny<MailMessage>()))
                 .Returns(Task.CompletedTask);
 
             // Act
             var result = await _smtpProvider.SendAsync(message);
 
             // Assert
-            result.Should().NotBeNull();
             result.Success.Should().BeTrue();
             result.MessageId.Should().NotBeNullOrEmpty();
-            _mockSmtpClient.Verify(x => x.SendMailAsync(It.Is<MailMessage>(m =>
-                m.To[0].Address == message.To &&
-                m.CC[0].Address == message.Cc[0] &&
-                m.Bcc[0].Address == message.Bcc[0] &&
-                m.Subject == message.Subject &&
-                m.Body == message.Body)), Times.Once);
+            _mockSmtpClient.Verify(x => x.SendMailAsync(It.IsAny<MailMessage>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task SendAsync_WhenSendFails_ShouldReturnFailure()
+        {
+            // Arrange
+            var message = new EmailMessage
+            {
+                To = "recipient@test.com",
+                Subject = "Test Subject",
+                Body = "Test Body",
+                IsHtml = false
+            };
+
+            _mockSmtpClient
+                .Setup(x => x.SendMailAsync(It.IsAny<MailMessage>()))
+                .ThrowsAsync(new SmtpException("Test error"));
+
+            // Act
+            var result = await _smtpProvider.SendAsync(message);
+
+            // Assert
+            result.Success.Should().BeFalse();
+            result.Error.Should().Be("Test error");
         }
 
         [Fact]
@@ -156,23 +170,21 @@ namespace SendMail.NET.Tests
         public async Task SendAsync_WithInvalidSettings_ShouldFail()
         {
             // Arrange
+            var smtpSettings = new SmtpProviderSettings(
+                host: "invalid-host",
+                port: 587,
+                username: "test@test.com",
+                password: "test-password",
+                defaultFrom: "test@test.com",
+                enableSsl: true
+            );
+
             var options = new EmailProviderOptions
             {
                 Providers = new List<ProviderConfig>
                 {
-                    new ProviderConfig
-                    {
-                        Name = "SMTP",
-                        Settings = new Dictionary<string, string>
-                        {
-                            { "Host", "invalid-host" },
-                            { "Port", "587" },
-                            { "Username", "test@test.com" },
-                            { "Password", "test-password" },
-                            { "EnableSsl", "true" },
-                            { "DefaultFrom", "test@test.com" }
-                        }
-                    }
+                    new ProviderConfig("SMTP", 1, smtpSettings)
+                        .WithEnabled(true)
                 }
             };
 

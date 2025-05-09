@@ -27,28 +27,38 @@ namespace SendMail.NET.Tests
             _mockProvider1.Setup(x => x.Name).Returns("Provider1");
             _mockProvider2.Setup(x => x.Name).Returns("Provider2");
 
+            var smtpSettings1 = new SmtpProviderSettings(
+                host: "smtp.test1.com",
+                port: 587,
+                username: "test1@test.com",
+                password: "test-password1",
+                defaultFrom: "test1@test.com",
+                enableSsl: true
+            );
+
+            var smtpSettings2 = new SmtpProviderSettings(
+                host: "smtp.test2.com",
+                port: 587,
+                username: "test2@test.com",
+                password: "test-password2",
+                defaultFrom: "test2@test.com",
+                enableSsl: true
+            );
+
             var options = new EmailProviderOptions
             {
                 Providers = new List<ProviderConfig>
                 {
-                    new ProviderConfig
-                    {
-                        Name = "Provider1",
-                        Priority = 1,
-                        HourlyQuota = 100,
-                        DailyQuota = 1000,
-                        MonthlyQuota = 10000,
-                        IsEnabled = true
-                    },
-                    new ProviderConfig
-                    {
-                        Name = "Provider2",
-                        Priority = 2,
-                        HourlyQuota = 100,
-                        DailyQuota = 1000,
-                        MonthlyQuota = 10000,
-                        IsEnabled = true
-                    }
+                    new ProviderConfig("Provider1", 1, smtpSettings1)
+                        .WithHourlyQuota(100)
+                        .WithDailyQuota(1000)
+                        .WithMonthlyQuota(10000)
+                        .WithEnabled(true),
+                    new ProviderConfig("Provider2", 2, smtpSettings2)
+                        .WithHourlyQuota(100)
+                        .WithDailyQuota(1000)
+                        .WithMonthlyQuota(10000)
+                        .WithEnabled(true)
                 }
             };
 
@@ -56,7 +66,6 @@ namespace SendMail.NET.Tests
             mockOptions.Setup(x => x.Value).Returns(options);
 
             _mockLogger = new Mock<ILogger<EmailProviderManager>>();
-
             var providers = new List<IEmailProvider> { _mockProvider1.Object, _mockProvider2.Object };
             _providerManager = new EmailProviderManager(providers, mockOptions.Object, _mockLogger.Object);
         }
@@ -153,22 +162,32 @@ namespace SendMail.NET.Tests
         public async Task GetNextProviderAsync_WhenProviderDisabled_ShouldSkipProvider()
         {
             // Arrange
+            var smtpSettings1 = new SmtpProviderSettings(
+                host: "smtp.test1.com",
+                port: 587,
+                username: "test1@test.com",
+                password: "test-password1",
+                defaultFrom: "test1@test.com",
+                enableSsl: true
+            );
+
+            var smtpSettings2 = new SmtpProviderSettings(
+                host: "smtp.test2.com",
+                port: 587,
+                username: "test2@test.com",
+                password: "test-password2",
+                defaultFrom: "test2@test.com",
+                enableSsl: true
+            );
+
             var options = new EmailProviderOptions
             {
                 Providers = new List<ProviderConfig>
                 {
-                    new ProviderConfig
-                    {
-                        Name = "Provider1",
-                        Priority = 1,
-                        IsEnabled = false
-                    },
-                    new ProviderConfig
-                    {
-                        Name = "Provider2",
-                        Priority = 2,
-                        IsEnabled = true
-                    }
+                    new ProviderConfig("Provider1", 1, smtpSettings1)
+                        .WithEnabled(false),
+                    new ProviderConfig("Provider2", 2, smtpSettings2)
+                        .WithEnabled(true)
                 }
             };
 
@@ -190,22 +209,32 @@ namespace SendMail.NET.Tests
         public async Task GetNextProviderAsync_WhenNoProvidersAvailable_ShouldThrowException()
         {
             // Arrange
+            var smtpSettings1 = new SmtpProviderSettings(
+                host: "smtp.test1.com",
+                port: 587,
+                username: "test1@test.com",
+                password: "test-password1",
+                defaultFrom: "test1@test.com",
+                enableSsl: true
+            );
+
+            var smtpSettings2 = new SmtpProviderSettings(
+                host: "smtp.test2.com",
+                port: 587,
+                username: "test2@test.com",
+                password: "test-password2",
+                defaultFrom: "test2@test.com",
+                enableSsl: true
+            );
+
             var options = new EmailProviderOptions
             {
                 Providers = new List<ProviderConfig>
                 {
-                    new ProviderConfig
-                    {
-                        Name = "Provider1",
-                        Priority = 1,
-                        IsEnabled = false
-                    },
-                    new ProviderConfig
-                    {
-                        Name = "Provider2",
-                        Priority = 2,
-                        IsEnabled = false
-                    }
+                    new ProviderConfig("Provider1", 1, smtpSettings1)
+                        .WithEnabled(false),
+                    new ProviderConfig("Provider2", 2, smtpSettings2)
+                        .WithEnabled(false)
                 }
             };
 

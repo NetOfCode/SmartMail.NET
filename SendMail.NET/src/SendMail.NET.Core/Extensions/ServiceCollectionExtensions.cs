@@ -74,16 +74,16 @@ namespace SendMail.NET.Core.Extensions
         /// Adds an email provider to the service collection.
         /// </summary>
         /// <typeparam name="TProvider">The type of the provider.</typeparam>
-        /// <param name="configure">The configuration action.</param>
+        /// <param name="config">The provider configuration.</param>
         /// <returns>The builder instance.</returns>
-        public SendMailBuilder AddProvider<TProvider>(Action<ProviderConfig> configure) 
+        public SendMailBuilder AddProvider<TProvider>(ProviderConfig config) 
             where TProvider : class, IEmailProvider
         {
+            if (config == null)
+                throw new ArgumentNullException(nameof(config));
+
             Services.AddScoped<IEmailProvider, TProvider>();
-            
-            var config = new ProviderConfig();
-            configure(config);
-            _providerOptions.Providers.Add(config);
+            _providerOptions.AddProvider(config);
             
             return this;
         }
