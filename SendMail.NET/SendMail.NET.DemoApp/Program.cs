@@ -65,11 +65,11 @@ public class CustomLoggingStep : IEmailPipelineStep
         _logger = logger;
     }
 
-    public Task ExecuteAsync(EmailContext context)
+    public Task<EmailContext> ExecuteAsync(EmailContext context)
     {
         _logger.LogInformation("Custom logging step: Sending email to {To} with subject {Subject}",
             context.Message.To,
             context.Message.Subject);
-        return Task.CompletedTask;
+        return Task.FromResult(context);
     }
-} 
+}
