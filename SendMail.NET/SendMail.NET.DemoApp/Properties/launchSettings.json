@@ -1,0 +1,12 @@
+{
+  "profiles": {
+    "SendMail.NET.DemoApp": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "applicationUrl": "https://localhost:54139;http://localhost:54140"
+    }
+  }
+}
