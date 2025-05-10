@@ -5,6 +5,8 @@ A flexible and extensible email sending pipeline for .NET applications.
 ## Features
 
 - Multiple email provider support
+  - SMTP (Gmail, Office 365, etc.)
+  - AWS SES (Amazon Simple Email Service)
 - Quota management
 - Environment-specific configurations
 - Runtime configuration reloading
@@ -16,6 +18,18 @@ A flexible and extensible email sending pipeline for .NET applications.
 ```bash
 dotnet add package SendMail.NET.Core
 ```
+
+## Version History
+
+### 1.1.0
+- Added AWS SES provider support
+- Improved configuration validation
+- Enhanced error handling
+
+### 1.0.0
+- Initial release
+- SMTP provider support
+- Basic pipeline functionality
 
 ## Quick Start
 
