@@ -10,4 +10,8 @@
     <ProjectReference Include="..\..\src\SendMail.NET.Core\SendMail.NET.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="AWSSDK.SimpleEmail" Version="3.7.300.52" />
+  </ItemGroup>
+
 </Project> 

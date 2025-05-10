@@ -37,6 +37,18 @@ builder.Services.AddSendMail(config =>
         options.Settings["DefaultFrom"] = "your-email@gmail.com";
     });
 
+    // Configure AWS SES provider
+    config.AddProvider<AwsSesEmailProvider>(options =>
+    {
+        options.Name = "AWS SES";
+        options.Priority = 2;
+        options.HourlyQuota = 1000;
+        options.Settings["Region"] = "us-east-1";
+        options.Settings["AccessKey"] = "your-access-key";
+        options.Settings["SecretKey"] = "your-secret-key";
+        options.Settings["DefaultFrom"] = "your-verified-email@domain.com";
+    });
+
     // Configure provider behavior
     config.ConfigureProviders(options =>
     {
@@ -91,6 +103,17 @@ public class YourService
           "Username": "your-email@gmail.com",
           "Password": "your-app-password",
           "DefaultFrom": "your-email@gmail.com"
+        }
+      },
+      {
+        "Name": "AWS SES",
+        "Priority": 2,
+        "HourlyQuota": 1000,
+        "Settings": {
+          "Region": "us-east-1",
+          "AccessKey": "your-access-key",
+          "SecretKey": "your-secret-key",
+          "DefaultFrom": "your-verified-email@domain.com"
         }
       }
     ],
