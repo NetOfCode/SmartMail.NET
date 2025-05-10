@@ -45,7 +45,28 @@ namespace SendMail.NET.Core.Providers
 
             if (!availableProviders.Any())
             {
-                throw new InvalidOperationException("No available email providers");
+                var quotaExceededProviders = _providers
+                    .Where(p => GetProviderConfig(p)?.IsEnabled == true)
+                    .Where(p => IsQuotaExceeded(p))
+                    .ToList();
+
+                if (quotaExceededProviders.Any())
+                {
+                    var quotaDetails = string.Join(", ", quotaExceededProviders.Select(p => 
+                    {
+                        var config = GetProviderConfig(p);
+                        var stats = _stats[p.Name];
+                        return $"{p.Name} (Daily: {stats.SuccessfulSends}/{config.DailyQuota}, " +
+                               $"Hourly: {stats.SuccessfulSends}/{config.HourlyQuota}, " +
+                               $"Monthly: {stats.SuccessfulSends}/{config.MonthlyQuota})";
+                    }));
+
+                    throw new InvalidOperationException(
+                        $"No available email providers. Quota exceeded for: {quotaDetails}. " +
+                        "Please add more providers or increase the quota limits for existing providers.");
+                }
+
+                throw new InvalidOperationException("No available email providers. All providers are either disabled or have exceeded their quotas.");
             }
 
             return availableProviders.First();
@@ -113,6 +134,44 @@ namespace SendMail.NET.Core.Providers
             }
 
             return true;
+        }
+
+        private bool IsQuotaExceeded(IEmailProvider provider)
+        {
+            var config = GetProviderConfig(provider);
+            if (config == null || !config.IsEnabled)
+                return false;
+
+            var stats = _stats[provider.Name];
+            var now = DateTime.UtcNow;
+            
+            // Check hourly quota
+            if (config.HourlyQuota.HasValue && 
+                stats.SuccessfulSends >= config.HourlyQuota.Value && 
+                stats.LastSuccess?.Hour == now.Hour &&
+                stats.LastSuccess?.Date == now.Date)
+            {
+                return true;
+            }
+
+            // Check daily quota
+            if (config.DailyQuota.HasValue && 
+                stats.SuccessfulSends >= config.DailyQuota.Value && 
+                stats.LastSuccess?.Date == now.Date)
+            {
+                return true;
+            }
+
+            // Check monthly quota
+            if (config.MonthlyQuota.HasValue && 
+                stats.SuccessfulSends >= config.MonthlyQuota.Value && 
+                stats.LastSuccess?.Month == now.Month &&
+                stats.LastSuccess?.Year == now.Year)
+            {
+                return true;
+            }
+
+            return false;
         }
 
         private ProviderConfig GetProviderConfig(IEmailProvider provider)

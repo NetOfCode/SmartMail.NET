@@ -37,7 +37,7 @@ builder.Services.AddSendMail(config =>
 var app = builder.Build();
 
 // Example endpoint to send an email
-app.MapPost("/send-email", async (IEmailService emailService) =>
+app.MapPost("/send-email", async (ISendMailService emailService) =>
 {
     var message = new EmailMessage
     {

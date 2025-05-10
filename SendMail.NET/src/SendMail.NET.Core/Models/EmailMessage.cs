@@ -9,8 +9,6 @@ namespace SendMail.NET.Core.Models
         public string Subject { get; set; }
         public string Body { get; set; }
         public bool IsHtml { get; set; }
-        public string TemplateName { get; set; }
-        public object Model { get; set; }
         public List<string> Cc { get; set; } = new();
         public List<string> Bcc { get; set; } = new();
         public List<EmailAttachment> Attachments { get; set; } = new();

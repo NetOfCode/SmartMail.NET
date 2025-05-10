@@ -7,7 +7,7 @@ namespace SendMail.NET.Core.Services
     /// <summary>
     /// Defines the contract for the email service that handles sending emails through the pipeline.
     /// </summary>
-    public interface IEmailService
+    public interface ISendMailService
     {
         /// <summary>
         /// Sends an email message through the configured pipeline.

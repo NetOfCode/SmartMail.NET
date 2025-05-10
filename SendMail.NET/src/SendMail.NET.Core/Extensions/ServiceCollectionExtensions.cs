@@ -137,7 +137,7 @@ namespace SendMail.NET.Core.Extensions
 
             // Register core services
             services.AddScoped<EmailPipeline>();
-            services.AddScoped<IEmailService, EmailService>();
+            services.AddScoped<ISendMailService, SendMailService>();
 
             var builder = new SendMailBuilder(services);
             configure(builder);

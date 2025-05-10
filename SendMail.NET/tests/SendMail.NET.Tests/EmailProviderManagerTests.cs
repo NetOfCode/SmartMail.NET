@@ -234,5 +234,120 @@ namespace SendMail.NET.Tests
             nextProvider.Should().NotBeNull();
             nextProvider.Name.Should().Be("Provider1"); // Should still use Provider1 as failures don't count towards quota
         }
+
+        [Fact]
+        public async Task GetNextProviderAsync_WhenQuotaExceededAndNoOtherProviders_ShouldThrowException()
+        {
+            // Arrange
+            var options = new EmailProviderOptions
+            {
+                Providers = new List<ProviderConfig>
+                {
+                    new ProviderConfig
+                    {
+                        Name = "Provider1",
+                        Priority = 1,
+                        DailyQuota = 1000,
+                        HourlyQuota = 100,
+                        MonthlyQuota = 10000,
+                        IsEnabled = true
+                    }
+                }
+            };
+
+            var mockOptions = new Mock<IOptions<EmailProviderOptions>>();
+            mockOptions.Setup(x => x.Value).Returns(options);
+
+            var providers = new List<IEmailProvider> { _mockProvider1.Object };
+            var manager = new EmailProviderManager(providers, mockOptions.Object, _mockLogger.Object);
+
+            // Act - Exceed the daily quota
+            var provider = await manager.GetNextProviderAsync();
+            for (int i = 0; i < 1000; i++)
+            {
+                await manager.ReportSuccessAsync(provider);
+            }
+
+            // Assert - Should throw exception with detailed quota information
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => manager.GetNextProviderAsync());
+            exception.Message.Should().Contain("No available email providers. Quota exceeded for: Provider1");
+            exception.Message.Should().Contain("Daily: 1000/1000");
+            exception.Message.Should().Contain("Please add more providers or increase the quota limits for existing providers");
+        }
+
+        [Fact]
+        public async Task GetNextProviderAsync_WhenProviderReachesMultipleQuotas_ShouldSwitchToNextProvider()
+        {
+            // Arrange
+            var options = new EmailProviderOptions
+            {
+                Providers = new List<ProviderConfig>
+                {
+                    new ProviderConfig
+                    {
+                        Name = "Provider1",
+                        Priority = 1,
+                        HourlyQuota = 50,
+                        DailyQuota = 200,
+                        MonthlyQuota = 1000,
+                        IsEnabled = true
+                    },
+                    new ProviderConfig
+                    {
+                        Name = "Provider2",
+                        Priority = 2,
+                        HourlyQuota = 100,
+                        DailyQuota = 500,
+                        MonthlyQuota = 2000,
+                        IsEnabled = true
+                    }
+                }
+            };
+
+            var mockOptions = new Mock<IOptions<EmailProviderOptions>>();
+            mockOptions.Setup(x => x.Value).Returns(options);
+
+            var providers = new List<IEmailProvider> { _mockProvider1.Object, _mockProvider2.Object };
+            var manager = new EmailProviderManager(providers, mockOptions.Object, _mockLogger.Object);
+
+            // Act - Exceed hourly quota for first provider
+            var provider1 = await manager.GetNextProviderAsync();
+            for (int i = 0; i < 50; i++)
+            {
+                await manager.ReportSuccessAsync(provider1);
+            }
+
+            // Assert - Should switch to Provider2 after hourly quota is exceeded
+            var nextProvider = await manager.GetNextProviderAsync();
+            nextProvider.Should().NotBeNull();
+            nextProvider.Name.Should().Be("Provider2");
+
+            // Act - Exceed daily quota for first provider
+            for (int i = 0; i < 150; i++) // Additional 150 to reach daily quota
+            {
+                await manager.ReportSuccessAsync(provider1);
+            }
+
+            // Assert - Should still use Provider2 as Provider1 has exceeded daily quota
+            nextProvider = await manager.GetNextProviderAsync();
+            nextProvider.Should().NotBeNull();
+            nextProvider.Name.Should().Be("Provider2");
+
+            // Act - Exceed monthly quota for first provider
+            for (int i = 0; i < 800; i++) // Additional 800 to reach monthly quota
+            {
+                await manager.ReportSuccessAsync(provider1);
+            }
+
+            // Assert - Should still use Provider2 as Provider1 has exceeded all quotas
+            nextProvider = await manager.GetNextProviderAsync();
+            nextProvider.Should().NotBeNull();
+            nextProvider.Name.Should().Be("Provider2");
+
+            // Verify Provider2 is still available and working
+            var result = await manager.GetNextProviderAsync();
+            result.Should().NotBeNull();
+            result.Name.Should().Be("Provider2");
+        }
     }
 } 

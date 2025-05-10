@@ -12,20 +12,20 @@ using Microsoft.Extensions.Logging;
 
 namespace SendMail.NET.Tests
 {
-    public class EmailServiceTests
+    public class SendMailServiceTests
     {
         private readonly Mock<IEmailProvider> _mockProvider;
         private readonly Mock<IEmailProviderManager> _mockProviderManager;
-        private readonly Mock<ILogger<EmailService>> _mockLogger;
+        private readonly Mock<ILogger<SendMailService>> _mockLogger;
         private readonly Mock<ILogger<EmailPipeline>> _mockPipelineLogger;
         private readonly Mock<ILogger<SendingStep>> _mockSendingStepLogger;
-        private readonly EmailService _emailService;
+        private readonly SendMailService _sendMailService;
 
-        public EmailServiceTests()
+        public SendMailServiceTests()
         {
             _mockProvider = new Mock<IEmailProvider>();
             _mockProviderManager = new Mock<IEmailProviderManager>();
-            _mockLogger = new Mock<ILogger<EmailService>>();
+            _mockLogger = new Mock<ILogger<SendMailService>>();
             _mockPipelineLogger = new Mock<ILogger<EmailPipeline>>();
             _mockSendingStepLogger = new Mock<ILogger<SendingStep>>();
 
@@ -35,7 +35,7 @@ namespace SendMail.NET.Tests
 
             var sendingStep = new SendingStep(_mockSendingStepLogger.Object);
             var pipeline = new EmailPipeline(new List<IEmailPipelineStep> { sendingStep }, _mockPipelineLogger.Object);
-            _emailService = new EmailService(pipeline, _mockProviderManager.Object, _mockLogger.Object);
+            _sendMailService = new SendMailService(pipeline, _mockProviderManager.Object, _mockLogger.Object);
         }
 
         [Fact]
@@ -60,7 +60,7 @@ namespace SendMail.NET.Tests
                 .ReturnsAsync(expectedResult);
 
             // Act
-            var result = await _emailService.SendAsync(message);
+            var result = await _sendMailService.SendAsync(message);
 
             // Assert
             result.Should().NotBeNull();
@@ -88,7 +88,7 @@ namespace SendMail.NET.Tests
                 .ThrowsAsync(new System.Exception("Failed to send email: Invalid email address"));
 
             // Act & Assert
-            var exception = await Assert.ThrowsAsync<System.Exception>(() => _emailService.SendAsync(message));
+            var exception = await Assert.ThrowsAsync<System.Exception>(() => _sendMailService.SendAsync(message));
             exception.Message.Should().Be("Failed to send email: Invalid email address");
             _mockProviderManager.Verify(x => x.ReportFailureAsync(_mockProvider.Object), Times.Once);
         }
@@ -108,7 +108,7 @@ namespace SendMail.NET.Tests
                 .ThrowsAsync(new System.Exception("Provider error"));
 
             // Act & Assert
-            var exception = await Assert.ThrowsAsync<System.Exception>(() => _emailService.SendAsync(message));
+            var exception = await Assert.ThrowsAsync<System.Exception>(() => _sendMailService.SendAsync(message));
             exception.Message.Should().Be("Provider error");
             _mockProviderManager.Verify(x => x.ReportFailureAsync(_mockProvider.Object), Times.Once);
         }
@@ -143,7 +143,7 @@ namespace SendMail.NET.Tests
                 .ReturnsAsync(expectedResult);
 
             // Act
-            var result = await _emailService.SendAsync(message);
+            var result = await _sendMailService.SendAsync(message);
 
             // Assert
             result.Should().NotBeNull();

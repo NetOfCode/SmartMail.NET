@@ -1,4 +1,3 @@
-using System;
 using Microsoft.Extensions.Logging;
 using SendMail.NET.Core.Models;
 using SendMail.NET.Core.Pipeline;
@@ -6,16 +5,16 @@ using SendMail.NET.Core.Providers;
 
 namespace SendMail.NET.Core.Services
 {
-    public class EmailService : IEmailService
+    public class SendMailService : ISendMailService
     {
         private readonly EmailPipeline _pipeline;
         private readonly IEmailProviderManager _providerManager;
-        private readonly ILogger<EmailService> _logger;
+        private readonly ILogger<SendMailService> _logger;
 
-        public EmailService(
+        public SendMailService(
             EmailPipeline pipeline,
             IEmailProviderManager providerManager,
-            ILogger<EmailService> logger)
+            ILogger<SendMailService> logger)
         {
             _pipeline = pipeline ?? throw new ArgumentNullException(nameof(pipeline));
             _providerManager = providerManager ?? throw new ArgumentNullException(nameof(providerManager));
