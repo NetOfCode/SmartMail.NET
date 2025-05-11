@@ -81,24 +81,47 @@ app.MapPost("/send-email-ses", async (ISendMailService emailService) =>
 });
 
 // Example endpoint to demonstrate rate limiting
-app.MapPost("/send-bulk-emails", async (ISendMailService emailService) =>
+app.MapPost("/send-bulk-emails", async (ISendMailService emailService, ILogger<Program> logger) =>
 {
     var tasks = new List<Task<SendResult>>();
     var startTime = DateTime.UtcNow;
+    var totalEmails = 1000; // Number of emails to send
+    var batchSize = 100; // Process in batches of 100
 
-    // Send 20 emails concurrently to demonstrate rate limiting
-    for (int i = 0; i < 20; i++)
+    logger.LogInformation("Starting to send {TotalEmails} emails with rate limiting", totalEmails);
+
+    // Process emails in batches to avoid memory issues
+    for (int batch = 0; batch < totalEmails; batch += batchSize)
     {
-        var message = new EmailMessage
-        {
-            To = "recipient@example.com",
-            Subject = $"Test Email {i + 1}",
-            Body = $"<h1>Hello from AWS SES!</h1><p>This is email {i + 1} of 20.</p>",
-            IsHtml = true,
-            From = "your-verified-email@domain.com"
-        };
+        var currentBatchSize = Math.Min(batchSize, totalEmails - batch);
+        var batchTasks = new List<Task<SendResult>>();
 
-        tasks.Add(emailService.SendAsync(message));
+        for (int i = 0; i < currentBatchSize; i++)
+        {
+            var message = new EmailMessage
+            {
+                To = "recipient@example.com",
+                Subject = $"Test Email {batch + i + 1}",
+                Body = $"<h1>Hello from AWS SES!</h1><p>This is email {batch + i + 1} of {totalEmails}.</p>",
+                IsHtml = true,
+                From = "your-verified-email@domain.com"
+            };
+
+            batchTasks.Add(emailService.SendAsync(message));
+        }
+
+        // Wait for current batch to complete
+        var batchResults = await Task.WhenAll(batchTasks);
+        tasks.AddRange(batchResults);
+
+        // Log progress
+        var progress = (batch + currentBatchSize) * 100.0 / totalEmails;
+        var elapsed = (DateTime.UtcNow - startTime).TotalSeconds;
+        var rate = (batch + currentBatchSize) / elapsed;
+        
+        logger.LogInformation(
+            "Progress: {Progress:F1}% ({Completed}/{Total}) - Rate: {Rate:F1} emails/sec - Elapsed: {Elapsed:F1}s",
+            progress, batch + currentBatchSize, totalEmails, rate, elapsed);
     }
 
     var results = await Task.WhenAll(tasks);
@@ -111,7 +134,8 @@ app.MapPost("/send-bulk-emails", async (ISendMailService emailService) =>
         SuccessfulEmails = results.Count(r => r.Success),
         FailedEmails = results.Count(r => !r.Success),
         Duration = $"{duration:F2} seconds",
-        AverageRate = $"{results.Length / duration:F2} emails per second"
+        AverageRate = $"{results.Length / duration:F2} emails per second",
+        EstimatedCompletion = DateTime.UtcNow.AddSeconds(duration).ToString("yyyy-MM-dd HH:mm:ss")
     };
 });
 

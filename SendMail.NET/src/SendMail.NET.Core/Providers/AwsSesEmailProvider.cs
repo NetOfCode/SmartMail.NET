@@ -112,7 +112,8 @@ namespace SendMail.NET.Core.Providers
                         
                         if (remainingDelay > 0)
                         {
-                            await Task.Delay(TimeSpan.FromMilliseconds(remainingDelay));
+                            // Add a small buffer to ensure we don't exceed the rate limit
+                            await Task.Delay(TimeSpan.FromMilliseconds(remainingDelay + 50));
                         }
                         
                         return result;

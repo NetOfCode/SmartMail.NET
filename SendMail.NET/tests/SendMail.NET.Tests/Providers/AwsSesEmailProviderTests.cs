@@ -388,5 +388,80 @@ namespace SendMail.NET.Tests.Providers
             Assert.Throws<ArgumentException>(() => 
                 new AwsSesEmailProvider(options.Object, _loggerMock.Object));
         }
+
+        [Fact]
+        public async Task SendAsync_WithRateLimiting_HandlesBulkSending()
+        {
+            // Arrange
+            var options = new EmailProviderOptions
+            {
+                Providers = new List<ProviderConfig>
+                {
+                    new ProviderConfig
+                    {
+                        Name = "AWS SES",
+                        Settings = new Dictionary<string, string>
+                        {
+                            { "Region", "us-east-1" },
+                            { "AccessKey", "test-access-key" },
+                            { "SecretKey", "test-secret-key" },
+                            { "DefaultFrom", "test@example.com" }
+                        },
+                        RequestsPerSecond = 1 // Set rate limit to 1 request per second
+                    }
+                }
+            };
+
+            var provider = new AwsSesEmailProvider(
+                Options.Create(options),
+                _loggerMock.Object,
+                _sesClientMock.Object
+            );
+
+            var message = new EmailMessage
+            {
+                To = "recipient@example.com",
+                Subject = "Test Subject",
+                Body = "Test Body"
+            };
+
+            _sesClientMock
+                .Setup(x => x.SendEmailAsync(It.IsAny<SendEmailRequest>(), default))
+                .ReturnsAsync(new SendEmailResponse { MessageId = "test-message-id" });
+
+            // Act
+            var timestamps = new List<DateTime>();
+            var results = new List<SendResult>();
+
+            // Send 10 emails sequentially to properly measure timing
+            for (int i = 0; i < 10; i++)
+            {
+                timestamps.Add(DateTime.UtcNow);
+                var result = await provider.SendAsync(message);
+                results.Add(result);
+            }
+
+            // Calculate time differences between requests
+            var timeDiffs = new List<double>();
+            for (int i = 1; i < timestamps.Count; i++)
+            {
+                timeDiffs.Add((timestamps[i] - timestamps[i - 1]).TotalSeconds);
+            }
+
+            // Assert
+            // Verify that all requests were successful
+            Assert.All(results, r => Assert.True(r.Success));
+
+            // Verify that the time between requests is approximately 1 second
+            // Allow for some timing variance (0.8 to 1.2 seconds)
+            Assert.All(timeDiffs, diff => 
+            {
+                Assert.True(diff >= 0.8, $"Time between requests was {diff:F2} seconds, expected at least 0.8 seconds");
+                Assert.True(diff <= 1.2, $"Time between requests was {diff:F2} seconds, expected at most 1.2 seconds");
+            });
+
+            // Verify that all requests were made
+            _sesClientMock.Verify(x => x.SendEmailAsync(It.IsAny<SendEmailRequest>(), default), Times.Exactly(10));
+        }
     }
 } 
