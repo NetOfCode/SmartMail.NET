@@ -12,6 +12,7 @@ namespace SendMail.NET.Core.Providers
         Task<IEmailProvider> GetNextProviderAsync();
         Task ReportSuccessAsync(IEmailProvider provider);
         Task ReportFailureAsync(IEmailProvider provider);
+        IEnumerable<IEmailProvider> GetAllProviders();
     }
 
     public class EmailProviderManager : IEmailProviderManager
@@ -177,6 +178,11 @@ namespace SendMail.NET.Core.Providers
         private ProviderConfig GetProviderConfig(IEmailProvider provider)
         {
             return _options.Providers.FirstOrDefault(p => p.Name == provider.Name);
+        }
+
+        public IEnumerable<IEmailProvider> GetAllProviders()
+        {
+            return _providers;
         }
 
         private class ProviderStats

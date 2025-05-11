@@ -112,7 +112,6 @@ app.MapPost("/send-bulk-emails", async (ISendMailService emailService, ILogger<P
 
         // Wait for current batch to complete
         var batchResults = await Task.WhenAll(batchTasks);
-        tasks.AddRange(batchResults);
 
         // Log progress
         var progress = (batch + currentBatchSize) * 100.0 / totalEmails;
