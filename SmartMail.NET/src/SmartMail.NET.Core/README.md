@@ -1,32 +1,25 @@
-# 📨 SmartMail.NET
+# 📨 SmartMail.NET.Core
 
-**SmartMail.NET** is a powerful and extensible email delivery pipeline for .NET applications.  
+**SmartMail.NET.Core** is a powerful and extensible email delivery pipeline for .NET applications.  
 It provides a flexible architecture for managing multiple email providers, handling quotas, and implementing fallback mechanisms.
 
 ---
 
-## 📦 Packages
+## ✨ Features
 
-SmartMail.NET consists of two main packages:
-
-### Core Package
-```bash
-dotnet add package SmartMail.NET.Core
-```
-The core package provides the email sending pipeline, provider management, and quota tracking.
-
-### Dashboard Package
-```bash
-dotnet add package SmartMail.NET.Dashboard
-```
-The dashboard package provides a real-time monitoring interface for your email providers.
+- ✅ **Multiple Provider Support** – Currently supports SMTP and AWS SES with more providers coming soon
+- 🔁 **Smart Failover** – Automatic switching to backup providers on failure
+- ⚙️ **Extensible Architecture** – Add custom providers via NuGet packages
+- 📊 **Quota Management** – Hourly, daily, and monthly quota tracking
+- 🔄 **Runtime Configuration** – Update provider settings without restart
+- 🧪 **Test-friendly** – Clean interfaces and extensibility built-in
 
 ---
 
-## 📦 Install
+## 📦 Installation
 
 ```bash
-dotnet add package SendMail.NET
+dotnet add package SmartMail.NET.Core
 ```
 
 ---
@@ -38,7 +31,7 @@ dotnet add package SendMail.NET
 3. Use the injected services to send emails
 
 ```csharp
-services.AddSendMail(config =>
+services.AddSmartMail(config =>
 {
     // Configure SMTP provider
     config.AddProvider<SmtpEmailProvider>(options =>
@@ -56,15 +49,25 @@ services.AddSendMail(config =>
         options.Settings["DefaultFrom"] = "your-email@gmail.com";
     });
 
+    // Configure AWS SES provider
+    config.AddProvider<AwsSesEmailProvider>(options =>
+    {
+        options.Name = "AWS SES";
+        options.Priority = 2;
+        options.HourlyQuota = 200;
+        options.DailyQuota = 2000;
+        options.MonthlyQuota = 20000;
+        options.Settings["Region"] = "us-west-2";
+        options.Settings["AccessKey"] = "your-access-key";
+        options.Settings["SecretKey"] = "your-secret-key";
+    });
+
     // Configure provider behavior
     config.ConfigureProviders(options =>
     {
         options.EnableFallback = true;
         options.MaxRetries = 3;
     });
-
-    // Use default pipeline
-    config.UseDefaultPipeline();
 });
 ```
 
@@ -90,6 +93,8 @@ Validate Email
     ↓
 Select Provider (priority/failover)
     ↓
+Check Quotas
+    ↓
 Send Email
     ↓
 Track Result
@@ -101,14 +106,12 @@ Track Result
 
 - [x] Core pipeline and interfaces
 - [x] SMTP provider
+- [x] AWS SES provider
 - [ ] SendGrid provider
 - [ ] Mailgun provider
-- [ ] Amazon SES provider
-- [ ] Dashboard UI for monitoring
 - [ ] Webhook support for delivery confirmations
 - [ ] SQL Server / PostgreSQL logging
 - [ ] Hangfire/Quartz integration
-- [ ] Blazor-based UI plugin support
 
 ---
 
@@ -122,4 +125,4 @@ Contributions are welcome! Whether it's a bug fix, a new provider, or improvemen
 
 ## 📄 License
 
-MIT
+MIT 

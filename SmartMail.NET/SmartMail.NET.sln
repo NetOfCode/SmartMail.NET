@@ -1,0 +1,60 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.13.35828.75
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{1C497758-6369-40E7-BEAA-51FFB606977A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartMail.NET.Core", "src\SmartMail.NET.Core\SmartMail.NET.Core.csproj", "{C9A20C6A-E3F3-2EBE-601C-2D362C9F4CCB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartMail.NET.Dashboard", "src\SmartMail.NET.Dashboard\SmartMail.NET.Dashboard.csproj", "{D96A8C23-5E82-4972-7F73-F233AD8647CC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartMail.NET.DashboardDemo", "tests\SmartMail.NET.DashboardDemo\SmartMail.NET.DashboardDemo.csproj", "{6361916A-689C-3C75-94D1-BB7153F97860}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartMail.NET.Tests", "tests\SmartMail.NET.Tests\SmartMail.NET.Tests.csproj", "{5695AF62-2D72-21E6-8EF5-7C2BB6E7AE7A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartMail.NET.DemoApp", "tests\SmartMail.NET.DemoApp\SmartMail.NET.DemoApp.csproj", "{1E60A096-C9E7-5397-C6A1-701A17C746F5}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{C9A20C6A-E3F3-2EBE-601C-2D362C9F4CCB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C9A20C6A-E3F3-2EBE-601C-2D362C9F4CCB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C9A20C6A-E3F3-2EBE-601C-2D362C9F4CCB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C9A20C6A-E3F3-2EBE-601C-2D362C9F4CCB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D96A8C23-5E82-4972-7F73-F233AD8647CC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D96A8C23-5E82-4972-7F73-F233AD8647CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D96A8C23-5E82-4972-7F73-F233AD8647CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D96A8C23-5E82-4972-7F73-F233AD8647CC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6361916A-689C-3C75-94D1-BB7153F97860}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6361916A-689C-3C75-94D1-BB7153F97860}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6361916A-689C-3C75-94D1-BB7153F97860}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6361916A-689C-3C75-94D1-BB7153F97860}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5695AF62-2D72-21E6-8EF5-7C2BB6E7AE7A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5695AF62-2D72-21E6-8EF5-7C2BB6E7AE7A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5695AF62-2D72-21E6-8EF5-7C2BB6E7AE7A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5695AF62-2D72-21E6-8EF5-7C2BB6E7AE7A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1E60A096-C9E7-5397-C6A1-701A17C746F5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1E60A096-C9E7-5397-C6A1-701A17C746F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1E60A096-C9E7-5397-C6A1-701A17C746F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1E60A096-C9E7-5397-C6A1-701A17C746F5}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{C9A20C6A-E3F3-2EBE-601C-2D362C9F4CCB} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{D96A8C23-5E82-4972-7F73-F233AD8647CC} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{6361916A-689C-3C75-94D1-BB7153F97860} = {1C497758-6369-40E7-BEAA-51FFB606977A}
+		{5695AF62-2D72-21E6-8EF5-7C2BB6E7AE7A} = {1C497758-6369-40E7-BEAA-51FFB606977A}
+		{1E60A096-C9E7-5397-C6A1-701A17C746F5} = {1C497758-6369-40E7-BEAA-51FFB606977A}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {09A99C6F-3BDF-46F2-AD1B-DA0AEFE502FD}
+	EndGlobalSection
+EndGlobal
