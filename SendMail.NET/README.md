@@ -57,6 +57,7 @@ builder.Services.AddSendMail(config =>
         options.Name = "AWS SES";
         options.Priority = 2;
         options.HourlyQuota = 1000;
+        options.RequestsPerSecond = 14;
         options.Settings["Region"] = "us-east-1";
         options.Settings["AccessKey"] = "your-access-key";
         options.Settings["SecretKey"] = "your-secret-key";
@@ -123,6 +124,7 @@ public class YourService
         "Name": "AWS SES",
         "Priority": 2,
         "HourlyQuota": 1000,
+        "RequestsPerSecond": 14,
         "Settings": {
           "Region": "us-east-1",
           "AccessKey": "your-access-key",
@@ -136,6 +138,23 @@ public class YourService
   }
 }
 ```
+
+### Rate Limiting
+
+The library supports rate limiting for email providers to prevent hitting service limits. For example, AWS SES sandbox has a limit of 14 requests per second. You can configure this using the `RequestsPerSecond` property in the provider configuration:
+
+```json
+{
+  "Name": "AWS SES",
+  "Priority": 2,
+  "RequestsPerSecond": 14,  // Limits requests to 14 per second
+  "Settings": {
+    // ... other settings ...
+  }
+}
+```
+
+When rate limiting is enabled, the provider will automatically throttle requests to stay within the specified limit.
 
 ## Contributing
 

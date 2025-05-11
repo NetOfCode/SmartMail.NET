@@ -59,6 +59,11 @@ namespace SendMail.NET.Core.Providers
         public bool IsEnabled { get; set; } = true;
 
         /// <summary>
+        /// Gets or sets the maximum number of requests allowed per second.
+        /// </summary>
+        public int? RequestsPerSecond { get; set; }
+
+        /// <summary>
         /// Gets or sets the provider-specific settings.
         /// </summary>
         public Dictionary<string, string> Settings { get; set; } = new();

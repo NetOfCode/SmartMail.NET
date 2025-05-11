@@ -23,12 +23,13 @@ builder.Services.AddSendMail(config =>
         options.Settings["DefaultFrom"] = "your-email@gmail.com";
     });
 
-    // Configure AWS SES provider
+    // Configure AWS SES provider with rate limiting
     config.AddProvider<AwsSesEmailProvider>(options =>
     {
         options.Name = "AWS SES";
         options.Priority = 2;
         options.HourlyQuota = 1000;
+        options.RequestsPerSecond = 14;  // AWS SES sandbox limit
         options.Settings["Region"] = "us-east-1";
         options.Settings["AccessKey"] = "your-access-key";
         options.Settings["SecretKey"] = "your-secret-key";
@@ -77,6 +78,41 @@ app.MapPost("/send-email-ses", async (ISendMailService emailService) =>
 
     var result = await emailService.SendAsync(message);
     return result;
+});
+
+// Example endpoint to demonstrate rate limiting
+app.MapPost("/send-bulk-emails", async (ISendMailService emailService) =>
+{
+    var tasks = new List<Task<SendResult>>();
+    var startTime = DateTime.UtcNow;
+
+    // Send 20 emails concurrently to demonstrate rate limiting
+    for (int i = 0; i < 20; i++)
+    {
+        var message = new EmailMessage
+        {
+            To = "recipient@example.com",
+            Subject = $"Test Email {i + 1}",
+            Body = $"<h1>Hello from AWS SES!</h1><p>This is email {i + 1} of 20.</p>",
+            IsHtml = true,
+            From = "your-verified-email@domain.com"
+        };
+
+        tasks.Add(emailService.SendAsync(message));
+    }
+
+    var results = await Task.WhenAll(tasks);
+    var endTime = DateTime.UtcNow;
+    var duration = (endTime - startTime).TotalSeconds;
+
+    return new
+    {
+        TotalEmails = results.Length,
+        SuccessfulEmails = results.Count(r => r.Success),
+        FailedEmails = results.Count(r => !r.Success),
+        Duration = $"{duration:F2} seconds",
+        AverageRate = $"{results.Length / duration:F2} emails per second"
+    };
 });
 
 app.Run();
