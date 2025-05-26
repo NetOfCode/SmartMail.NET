@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Options;
+using SmartMail.NET.Dashboard.Models;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -9,17 +11,19 @@ public class BasicAuthMiddleware
     private readonly RequestDelegate _next;
     private readonly string _username;
     private readonly string _password;
+    private readonly string _dashboardPath;
 
-    public BasicAuthMiddleware(RequestDelegate next, string username, string password)
+    public BasicAuthMiddleware(RequestDelegate next, string username, string password, IOptions<DashboardOptions> options)
     {
         _next = next;
         _username = username;
         _password = password;
+        _dashboardPath = options.Value.Path;
     }
 
     public async Task InvokeAsync(HttpContext context)
     {
-        if (context.Request.Path.StartsWithSegments("/SmartMail"))
+        if (context.Request.Path.StartsWithSegments(_dashboardPath))
         {
             string authHeader = context.Request.Headers["Authorization"];
             if (authHeader != null && authHeader.StartsWith("Basic "))

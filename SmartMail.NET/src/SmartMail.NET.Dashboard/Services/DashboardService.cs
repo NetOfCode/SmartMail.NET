@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using SmartMail.NET.Core.Providers;
 using SmartMail.NET.Core.Services;
 using SmartMail.NET.Dashboard.Extensions;
+using SmartMail.NET.Dashboard.Models;
 
 namespace SmartMail.NET.Dashboard.Services;
 
