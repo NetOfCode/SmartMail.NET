@@ -24,7 +24,9 @@ public class DashboardService
 
     public string GetDashboardHtml()
     {
-        return @"
+        var basePath = _options.Path?.TrimEnd('/') ?? "";
+
+        return $@"
 <!DOCTYPE html>
 <html lang=""en"">
 <head>
@@ -34,22 +36,22 @@ public class DashboardService
     <link href=""https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"" rel=""stylesheet"">
     <link href=""https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css"" rel=""stylesheet"">
     <style>
-        .provider-card {
+        .provider-card {{
             transition: all 0.3s ease;
-        }
-        .provider-card:hover {
+        }}
+        .provider-card:hover {{
             transform: translateY(-5px);
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-        .status-indicator {
+        }}
+        .status-indicator {{
             width: 10px;
             height: 10px;
             border-radius: 50%;
             display: inline-block;
             margin-right: 5px;
-        }
-        .status-active { background-color: #28a745; }
-        .status-inactive { background-color: #dc3545; }
+        }}
+        .status-active {{ background-color: #28a745; }}
+        .status-inactive {{ background-color: #dc3545; }}
     </style>
 </head>
 <body>
@@ -92,55 +94,57 @@ public class DashboardService
     </div>
 
     <script>
-        function updateProviders() {
-            fetch('/SmartMail/api/providers')
+        const basePath = '{basePath}';
+
+        function updateProviders() {{
+            fetch(`${{basePath}}/api/providers`)
                 .then(response => response.json())
-                .then(providers => {
+                .then(providers => {{
                     const container = document.getElementById('providers-container');
-                    container.innerHTML = providers.map(provider => `
+                    container.innerHTML = providers.map(p => `
                         <div class=""col-md-4 mb-3"">
                             <div class=""card provider-card"">
                                 <div class=""card-body"">
                                     <h5 class=""card-title"">
-                                        <span class=""status-indicator ${provider.isActive ? 'status-active' : 'status-inactive'}""></span>
-                                        ${provider.name}
+                                        <span class=""status-indicator ${{p.isActive ? 'status-active' : 'status-inactive'}}""></span>
+                                        ${{p.name}}
                                     </h5>
                                     <p class=""card-text"">
-                                        <small class=""text-muted"">Type: ${provider.type}</small><br>
-                                        <small class=""text-muted"">Quota: ${provider.quotaUsed}/${provider.quotaLimit}</small>
+                                        <small class=""text-muted"">Type: ${{p.type}}</small><br>
+                                        <small class=""text-muted"">Quota: ${{p.quotaUsed}}/${{p.quotaLimit}}</small>
                                     </p>
                                 </div>
                             </div>
                         </div>
                     `).join('');
-                });
-        }
+                }});
+        }}
 
-        function updateStats() {
-            fetch('/SmartMail/api/stats')
+        function updateStats() {{
+            fetch(`${{basePath}}/api/stats`)
                 .then(response => response.json())
-                .then(stats => {
+                .then(stats => {{
                     const container = document.getElementById('stats-container');
                     container.innerHTML = `
                         <div class=""row"">
                             <div class=""col-6"">
                                 <h6>Total Emails Sent</h6>
-                                <p class=""h3"">${stats.totalSent}</p>
+                                <p class=""h3"">${{stats.totalSent}}</p>
                             </div>
                             <div class=""col-6"">
                                 <h6>Success Rate</h6>
-                                <p class=""h3"">${stats.successRate}%</p>
+                                <p class=""h3"">${{stats.successRate}}%</p>
                             </div>
                         </div>
                     `;
-                });
-        }
+                }});
+        }}
 
         // Update every 5 seconds
-        setInterval(() => {
+        setInterval(() => {{
             updateProviders();
             updateStats();
-        }, 5000);
+        }}, 5000);
 
         // Initial load
         updateProviders();
